@@ -8,7 +8,18 @@ defmodule Vaultex.RedirectableRequests do
 
     options =
       if certificate_path(),
-        do: [{:ssl, [verify: :verify_peer, cacertfile: certificate_path()]} | options],
+        do: [
+          {:ssl,
+           [
+             verify: :verify_peer,
+             cacertfile: certificate_path(),
+             server_name_indication: :disable,
+             customize_hostname_check: [
+               match_fun: :public_key.pkix_verify_hostname_match_fun(:https)
+             ]
+           ]}
+          | options
+        ],
         else: options
 
     @httpoison.request(method, url, Poison.encode!(params, []), headers, options)
